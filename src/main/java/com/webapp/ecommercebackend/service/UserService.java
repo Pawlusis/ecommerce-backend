@@ -1,21 +1,26 @@
 package com.webapp.ecommercebackend.service;
 
+import com.webapp.ecommercebackend.api.model.LoginBody;
 import com.webapp.ecommercebackend.api.model.RegistrationBody;
 import com.webapp.ecommercebackend.exception.UserAlreadyExistsException;
 import com.webapp.ecommercebackend.model.LocalUser;
 import com.webapp.ecommercebackend.model.dao.LocalUserDAO;
-import jakarta.validation.Valid;
-import jakarta.validation.Validator;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
 
 
     private LocalUserDAO localUserDAO;
+    private EncryptionService encryptionService;
+    private JWTService jwtService;
 
-    public UserService(LocalUserDAO localUserDAO) {
+    public UserService(LocalUserDAO localUserDAO, EncryptionService encryptionService, JWTService jwtService) {
         this.localUserDAO = localUserDAO;
+        this.encryptionService = encryptionService;
+        this.jwtService = jwtService;
     }
 
 
@@ -29,8 +34,18 @@ public class UserService {
         user.setUsername(registrationBody.getUsername());
         user.setFirstName(registrationBody.getFirstName());
         user.setLastName(registrationBody.getLastName());
-        //TODO: create passwords encryption
-        user.setPassword(registrationBody.getPassword());
+        user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword()));
         return localUserDAO.save(user);
+    }
+
+    public String loginUser(LoginBody loginBody){
+        Optional<LocalUser> opUser = localUserDAO.findByUsernameIgnoreCase(loginBody.getUsername());
+        if (opUser.isPresent()){
+            LocalUser user = opUser.get();
+            if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())){
+                return jwtService.generateJWT(user);
+            }
+        }
+        return null;
     }
 }
