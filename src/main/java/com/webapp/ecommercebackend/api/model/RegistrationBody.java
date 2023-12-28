@@ -6,7 +6,7 @@ public class RegistrationBody {
 
     @NotNull
     @NotBlank
-    @Size(min=5, max = 255)
+    @Size(min=3, max=255)
     private String username;
 
     @NotNull
@@ -16,8 +16,8 @@ public class RegistrationBody {
 
     @NotNull
     @NotBlank
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")
-    @Size(min=8, max=48)
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$")
+    @Size(min=6, max=32)
     private String password;
 
     @NotNull
