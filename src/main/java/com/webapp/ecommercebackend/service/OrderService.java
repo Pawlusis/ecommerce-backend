@@ -12,11 +12,11 @@ public class OrderService {
 
     private WebOrderDAO webOrderDAO;
 
-    public OrderService(WebOrderDAO webOrderDAO){
+    public OrderService(WebOrderDAO webOrderDAO) {
         this.webOrderDAO = webOrderDAO;
     }
 
-    public List<WebOrder> getOrders(LocalUser user){
+    public List<WebOrder> getOrders(LocalUser user) {
         return webOrderDAO.findByUser(user);
     }
 

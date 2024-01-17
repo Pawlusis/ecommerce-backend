@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EncryptionService {
+
     @Value("${encryption.salt.rounds}")
     private int saltRounds;
+
     private String salt;
 
     @PostConstruct
-    public void postConstruct(){
+    public void postConstruct() {
         salt = BCrypt.gensalt(saltRounds);
     }
 
@@ -20,7 +22,8 @@ public class EncryptionService {
         return BCrypt.hashpw(password, salt);
     }
 
-    public boolean verifyPassword(String password, String hash){
+    public boolean verifyPassword(String password, String hash) {
         return BCrypt.checkpw(password, hash);
     }
+
 }

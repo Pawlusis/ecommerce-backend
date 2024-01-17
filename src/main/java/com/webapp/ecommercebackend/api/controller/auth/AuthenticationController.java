@@ -1,18 +1,26 @@
 package com.webapp.ecommercebackend.api.controller.auth;
 
+import com.webapp.ecommercebackend.model.LocalUser;
 import com.webapp.ecommercebackend.api.model.LoginBody;
 import com.webapp.ecommercebackend.api.model.LoginResponse;
+import com.webapp.ecommercebackend.api.model.PasswordResetBody;
 import com.webapp.ecommercebackend.api.model.RegistrationBody;
 import com.webapp.ecommercebackend.exception.EmailFailureException;
+import com.webapp.ecommercebackend.exception.EmailNotFoundException;
 import com.webapp.ecommercebackend.exception.UserAlreadyExistsException;
 import com.webapp.ecommercebackend.exception.UserNotVerifiedException;
-import com.webapp.ecommercebackend.model.LocalUser;
 import com.webapp.ecommercebackend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
@@ -74,6 +82,24 @@ public class AuthenticationController {
     @GetMapping("/me")
     public LocalUser getLoggedInUserProfile(@AuthenticationPrincipal LocalUser user) {
         return user;
+    }
+
+    @PostMapping("/forgot")
+    public ResponseEntity forgotPassword(@RequestParam String email) {
+        try {
+            userService.forgotPassword(email);
+            return ResponseEntity.ok().build();
+        } catch (EmailNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (EmailFailureException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/reset")
+    public ResponseEntity resetPassword(@Valid @RequestBody PasswordResetBody body) {
+        userService.resetPassword(body);
+        return ResponseEntity.ok().build();
     }
 
 }

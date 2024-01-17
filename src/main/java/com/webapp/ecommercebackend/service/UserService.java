@@ -1,12 +1,14 @@
 package com.webapp.ecommercebackend.service;
 
-import com.webapp.ecommercebackend.api.model.LoginBody;
-import com.webapp.ecommercebackend.api.model.RegistrationBody;
 import com.webapp.ecommercebackend.exception.EmailFailureException;
 import com.webapp.ecommercebackend.exception.UserAlreadyExistsException;
 import com.webapp.ecommercebackend.exception.UserNotVerifiedException;
 import com.webapp.ecommercebackend.model.LocalUser;
 import com.webapp.ecommercebackend.model.VerificationToken;
+import com.webapp.ecommercebackend.api.model.LoginBody;
+import com.webapp.ecommercebackend.api.model.PasswordResetBody;
+import com.webapp.ecommercebackend.api.model.RegistrationBody;
+import com.webapp.ecommercebackend.exception.EmailNotFoundException;
 import com.webapp.ecommercebackend.model.dao.LocalUserDAO;
 import com.webapp.ecommercebackend.model.dao.VerificationTokenDAO;
 import jakarta.transaction.Transactional;
@@ -100,6 +102,31 @@ public class UserService {
             }
         }
         return false;
+    }
+
+    public void forgotPassword(String email) throws EmailNotFoundException, EmailFailureException {
+        Optional<LocalUser> opUser = localUserDAO.findByEmailIgnoreCase(email);
+        if (opUser.isPresent()) {
+            LocalUser user = opUser.get();
+            String token = jwtService.generatePasswordResetJWT(user);
+            emailService.sendPasswordResetEmail(user, token);
+        } else {
+            throw new EmailNotFoundException();
+        }
+    }
+
+    public void resetPassword(PasswordResetBody body) {
+        String email = jwtService.getResetPasswordEmail(body.getToken());
+        Optional<LocalUser> opUser = localUserDAO.findByEmailIgnoreCase(email);
+        if (opUser.isPresent()) {
+            LocalUser user = opUser.get();
+            user.setPassword(encryptionService.encryptPassword(body.getPassword()));
+            localUserDAO.save(user);
+        }
+    }
+
+    public boolean userHasPermissionToUser(LocalUser user, Long id) {
+        return user.getId() == id;
     }
 
 }
